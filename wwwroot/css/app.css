@@ -1,6 +1,8 @@
 :root {
     --background-color: white;
     --text-color: black;
+    --my-text-color: black;
+    --other-user-text-color: rgba(100, 200, 200, 0.4);
 }
 
 body {
