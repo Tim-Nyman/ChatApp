@@ -2,6 +2,8 @@ using ChatApp.Components;
 using ChatApp.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSignalR();
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -15,10 +17,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseStaticFiles();
+app.UseRouting();
+
 app.UseHttpsRedirection();
-
-app.MapHub<ChatHub>("/chathub");
-
+app.MapHub<ChatHub>("/chatHub");
 app.UseAntiforgery();
 
 app.MapStaticAssets();
