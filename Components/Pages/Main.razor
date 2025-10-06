@@ -1,6 +1,36 @@
-﻿@layout MainLayout
+﻿@inject UserService UserService
+@rendermode InteractiveServer
+@layout MainLayout
 @page "/"
 
-@code {
+<div class="content-wrapper">
+    <section>
+        <div>
+            <label for="userName">Enter a username</label>
+            <input type="text" id="userName" @bind="username" required />
+            <button @onclick="RegisterUser">Register Username</button>
+        </div>
 
+        <div>
+            <nav>
+                <a href="/">Home</a>
+            </nav>
+            @if (!string.IsNullOrWhiteSpace(UserService.UserName))
+            {
+                <a href="/chat">Chat</a>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private string username = "";
+
+    private void RegisterUser()
+    {
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            UserService.RegisterUser(username);
+        }
+    }
 }

@@ -1,8 +1,37 @@
-﻿@layout ChatLayout
-@page "/chat"
+﻿@page "/chat"
+@layout ChatLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject ChatService ChatService
+@inject UserService UserService
 
-
+<ChatWindow Messages="messages" OnSendMessage="HandleSendMessage" UserName="@UserService.UserName" />
 
 @code {
+    private List<ChatWindow.ChatMessage> messages = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        ChatService.OnMessageReceived += (user, message) =>
+        {
+            messages.Add(new ChatWindow.ChatMessage { User = user, Text = message });
+            InvokeAsync(StateHasChanged);
+        };
+
+        await ChatService.StartAsync();
+    }
+
+    private async Task HandleSendMessage(ChatWindow.ChatMessage data)
+    {
+        var sanitizedUser = await JS.InvokeAsync<string>("sanitizeInput", data.User);
+        var sanitizedText = await JS.InvokeAsync<string>("sanitizeInput", data.Text);
+
+        var sanitizedData = new ChatWindow.ChatMessage
+        {
+            User = sanitizedUser,
+            Text = sanitizedText
+        };
+
+        await ChatService.SendMessageAsync(sanitizedData.User, sanitizedData.Text);
+    }
 }
