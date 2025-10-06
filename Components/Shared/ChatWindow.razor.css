@@ -24,16 +24,30 @@
 }
 
 /* Individual message */
-.chat-message {
+.my-message {
     padding: 8px 12px;
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.05);
     color: var(--text-color);
+    margin-left: auto;
 }
 
-body.dark-mode .chat-message {
+body.dark-mode .my-message {
     background-color: rgba(255, 255, 255, 0.1);
 }
+
+.other-user-message {
+    padding: 8px 12px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--other-user-text-color);
+    margin-right: auto;
+}
+
+body.dark-mode .other-user-message {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
 
 /* Input container */
 .chat-input {

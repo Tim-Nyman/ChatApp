@@ -8,5 +8,10 @@ namespace ChatApp.Hubs
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
+
+        public async Task JoinChat(string user)
+        {
+            await Clients.All.SendAsync("UserJoined", user);
+        }
     }
 }

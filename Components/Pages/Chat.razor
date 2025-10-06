@@ -1,77 +1,25 @@
 ﻿@page "/chat"
 @rendermode InteractiveServer
-@layout MainLayout
-@inject NavigationManager NavigationManager
-    
-<div class="chat-frame">
-    <div class="chat-messages">
-        @foreach (var msg in messages)
-        {
-            <div class="chat-message">@msg</div>
-        }
-    </div>
+@inject ChatService ChatService
 
-    <div class="chat-input">
-        <input placeholder="Your name" @bind="user" />
-        <input placeholder="Message" @bind="message" @onkeydown="HandleEnter" />
-        <button @onclick="SendMessage">Send</button>
-    </div>
-</div>
-
-<div class="users-aside">
-
-</div>
+<ChatWindow Messages="messages" OnSendMessage="HandleSendMessage" />
 
 @code {
-    private HubConnection? hubConnection;
-    private string user = "";
-    private string message = "";
-    private List<string> messages = new();
+    private List<ChatWindow.ChatMessage> messages = new();
 
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-        .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
-        .WithAutomaticReconnect()
-        .Build();
-
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        ChatService.OnMessageReceived += (user, message) =>
         {
-            var encodedMessage = $"{user}: {message}";
-            messages.Add(encodedMessage);
+            messages.Add(new ChatWindow.ChatMessage { User = user, Text = message });
             InvokeAsync(StateHasChanged);
-        });
+        };
 
-        try
-        {
-            await hubConnection.StartAsync();
-            Console.WriteLine("HubConnection started successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"HubConnection failed to start: {ex.Message}");
-        }
+        await ChatService.StartAsync();
     }
 
-    private async Task SendMessage()
+    private async Task HandleSendMessage(ChatWindow.ChatMessage data)
     {
-        if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(message))
-        {
-            if (hubConnection != null)
-            {
-                await hubConnection.SendAsync("SendMessage", user, message);
-                message = "";
-            }
-        }
+        await ChatService.SendMessageAsync(data.User, data.Text);
     }
-
-    private async Task HandleEnter(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            await SendMessage();
-        }
-    }
-
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
 }

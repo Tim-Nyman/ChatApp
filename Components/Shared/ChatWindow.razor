@@ -1,1 +1,44 @@
-﻿
+﻿@rendermode InteractiveServer
+
+<div class="chat-frame">
+    <div class="chat-messages">
+        @foreach (var msg in Messages)
+        {
+            var isMyMessage = msg.User == UserName;
+            <div class="chat-message @(isMyMessage ? "my-message" : "other-user-message")">
+                <strong>@msg.User:</strong> @msg.Text
+            </div>
+        }
+    </div>
+
+
+    <div class="chat-input">
+        <input placeholder="Your name" @bind="UserName" />
+        <input placeholder="Message" @bind="MessageText" />
+        <button type="button" @onclick="SendMessage">Send</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<ChatMessage> OnSendMessage { get; set; }
+    [Parameter] public List<ChatMessage> Messages { get; set; } = new();
+
+    private string UserName { get; set; } = "";
+    private string MessageText { get; set; } = "";
+
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(UserName) && !string.IsNullOrWhiteSpace(MessageText))
+        {
+            var newMessage = new ChatMessage { User = UserName, Text = MessageText };
+            await OnSendMessage.InvokeAsync(newMessage);
+            MessageText = "";
+        }
+    }
+
+    public class ChatMessage
+    {
+        public string User { get; set; } = "";
+        public string Text { get; set; } = "";
+    }
+}
