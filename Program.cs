@@ -9,6 +9,7 @@ builder.Services.AddSignalR();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();

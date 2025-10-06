@@ -2,7 +2,7 @@
     --background-color: white;
     --text-color: black;
     --my-text-color: black;
-    --other-user-text-color: rgba(100, 200, 200, 0.4);
+    --other-user-text-color: rgba(100, 200, 200, 1);
 }
 
 body {
@@ -31,19 +31,23 @@ body {
     border-radius: 5px;
 }
 
+/*/* === Layout Wrapper === */
 .content-wrapper {
     display: flex;
-    flex: 1;
+    gap: 20px; 
+    padding: 20px;
 }
 
     .content-wrapper section {
         flex: 1;
-        padding: 20px;
+        display: flex;
+        flex-direction: column;
     }
 
     .content-wrapper aside {
-        width: 150px;
-        margin-left: 25px;
-        margin-right: 25px;
-        padding: 20px;
+        width: 250px;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        background-color: rgba(255, 255, 255, 0.1);
     }

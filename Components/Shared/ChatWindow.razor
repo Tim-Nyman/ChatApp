@@ -13,17 +13,17 @@
 
 
     <div class="chat-input">
-        <input placeholder="Your name" @bind="UserName" />
-        <input placeholder="Message" @bind="MessageText" />
+        <input placeholder="Type your message" @bind="MessageText" />
         <button type="button" @onclick="SendMessage">Send</button>
     </div>
 </div>
 
+
 @code {
     [Parameter] public EventCallback<ChatMessage> OnSendMessage { get; set; }
     [Parameter] public List<ChatMessage> Messages { get; set; } = new();
+    [Parameter] public string UserName { get; set; } = "";
 
-    private string UserName { get; set; } = "";
     private string MessageText { get; set; } = "";
 
     private async Task SendMessage()

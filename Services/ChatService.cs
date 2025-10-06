@@ -8,7 +8,7 @@ namespace ChatApp.Services
         private readonly HubConnection _hubConnection;
 
         public event Action<string, string>? OnMessageReceived;
-        public event Action<string>? OnUserJoined;
+
         public async Task StartAsync() => await _hubConnection.StartAsync();
 
         public ChatService(NavigationManager nav)
@@ -26,7 +26,5 @@ namespace ChatApp.Services
 
         public async Task SendMessageAsync(string user, string message)
             => await _hubConnection.SendAsync("SendMessage", user, message);
-
-        public bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
     }
 }
