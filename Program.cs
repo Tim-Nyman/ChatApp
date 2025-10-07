@@ -14,6 +14,7 @@ builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
