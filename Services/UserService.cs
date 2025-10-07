@@ -1,7 +1,11 @@
 ﻿using ChatApp.Data.Models;
 using ChatApp.Data.Services;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace ChatApp.Services
 {
@@ -9,10 +13,12 @@ namespace ChatApp.Services
     {
         public UserModel? CurrentUser { get; set; }
         private readonly CosmosService _cosmosService;
+        private readonly IConfiguration _configuration;
 
-        public UserService(CosmosService cosmosService)
+        public UserService(CosmosService cosmosService, IConfiguration configuration)
         {
             _cosmosService = cosmosService;
+            _configuration = configuration;
         }
 
         public async Task RegisterUserAsync(string username, string password)
@@ -67,9 +73,33 @@ namespace ChatApp.Services
             byte[] saltBytes = Convert.FromBase64String(user.Salt);
             bool valid = VerifyPassword(enteredPassword, user.PasswordHash, saltBytes);
 
-            if (valid) CurrentUser = user;
+            if (!valid) return null;
 
-            return valid ? user : null;
+            CurrentUser = user;
+
+            var jwtSection = _configuration.GetSection("JwtSettings");
+            var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
+            var issuer = jwtSection["Issuer"];
+            var audience = jwtSection["Audience"];
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id)
+                }),
+                Expires = DateTime.UtcNow.AddHours(2),
+                Issuer = issuer,
+                Audience = audience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            user.Token = tokenHandler.WriteToken(token);
+
+            return user;
         }
 
 
