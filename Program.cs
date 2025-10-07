@@ -1,4 +1,5 @@
 using ChatApp.Components;
+using ChatApp.Data.Services;
 using ChatApp.Hubs;
 using ChatApp.Services;
 
@@ -8,6 +9,17 @@ builder.Services.AddSignalR();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var cosmosSection = builder.Configuration.GetSection("CosmosDB");
+
+builder.Services.AddSingleton(sp =>
+    new CosmosService(
+        cosmosSection["Endpoint"],
+        cosmosSection["PrimaryKey"],
+        cosmosSection["Database"]       
+    )
+);
+
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ChatService>();

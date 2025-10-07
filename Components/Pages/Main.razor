@@ -1,36 +1,106 @@
-﻿@inject UserService UserService
-@rendermode InteractiveServer
+﻿@page "/"
+@inject IJSRuntime JS
+@inject UserService UserService
+@inject NavigationManager NavigationManager
 @layout MainLayout
-@page "/"
+@rendermode InteractiveServer
+@using System.Text.Json
 
 <div class="content-wrapper">
     <section>
         <div>
-            <label for="userName">Enter a username</label>
-            <input type="text" id="userName" @bind="username" required />
-            <button @onclick="RegisterUser">Register Username</button>
+            <label for="username">Enter a username</label>
+            <input type="text" id="username" @bind="username" required />
+
+            <label for="password">Enter a password</label>
+            <input type="password" id="password" @bind="password" required />
+
+            <button @onclick="RegisterUser">Register</button>
+        </div>
+
+        <div>
+            <label for="loginusername">Enter a username</label>
+            <input type="text" id="loginusername" @bind="loginusername" required />
+
+            <label for="loginpassword">Enter a password</label>
+            <input type="password" id="loginpassword" @bind="loginpassword" required />
+
+            <button @onclick="Login">Login</button>
+
+        </div>
+        <div>
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <p>@statusMessage</p>
+            }
         </div>
 
         <div>
             <nav>
                 <a href="/">Home</a>
             </nav>
-            @if (!string.IsNullOrWhiteSpace(UserService.UserName))
-            {
+            <nav>
                 <a href="/chat">Chat</a>
-            }
+            </nav>
         </div>
     </section>
 </div>
 
 @code {
-    private string username = "";
+    private string username = string.Empty;
+    private string password = string.Empty;
+    private string statusMessage = string.Empty;
 
-    private void RegisterUser()
+
+    private string loginusername = string.Empty;
+    private string loginpassword = string.Empty;
+
+    private async Task RegisterUser()
     {
-        if (!string.IsNullOrWhiteSpace(username))
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
-            UserService.RegisterUser(username);
+            statusMessage = "Username and password are required.";
+            return;
+        }
+
+        try
+        {
+            await UserService.RegisterUserAsync(username, password);
+            statusMessage = "User registered successfully!";
+            username = string.Empty;
+            password = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Registration failed: {ex.Message}";
+        }
+    }
+
+    public async Task Login()
+    {
+        if (string.IsNullOrWhiteSpace(loginusername) || string.IsNullOrWhiteSpace(loginpassword))
+        {
+            statusMessage = "Username and password are required.";
+            return;
+        }
+
+        try
+        {
+            var user = await UserService.LoginAsync(loginusername, loginpassword);
+            if (user == null)
+            {
+                statusMessage = "Invalid username or password.";
+                return;
+            }
+
+            await JS.InvokeVoidAsync("sessionStorage.setItem", "currentUser", JsonSerializer.Serialize(user));
+            statusMessage = "User logged in successfully!";
+
+            NavigationManager.NavigateTo("/chat");
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Login failed: {ex.Message}";
         }
     }
 }

@@ -1,24 +1,61 @@
 ﻿@page "/chat"
+@using ChatApp.Data.Models
+@using System.Text.Json
 @layout ChatLayout
 @rendermode InteractiveServer
 @inject IJSRuntime JS
 @inject ChatService ChatService
 @inject UserService UserService
 
-<ChatWindow Messages="messages" OnSendMessage="HandleSendMessage" UserName="@UserService.UserName" />
+
+<ChatWindow Messages="messages" OnSendMessage="HandleSendMessage" UserName="@UserService.CurrentUser?.Username" />
+
 
 @code {
+
+
     private List<ChatWindow.ChatMessage> messages = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        ChatService.OnMessageReceived += (user, message) =>
-        {
-            messages.Add(new ChatWindow.ChatMessage { User = user, Text = message });
-            InvokeAsync(StateHasChanged);
-        };
+        if (!firstRender) return;
 
-        await ChatService.StartAsync();
+        try
+        {
+            var userJson = await JS.InvokeAsync<string>("sessionStorage.getItem", "currentUser");
+
+            if (!string.IsNullOrEmpty(userJson))
+            {
+                try
+                {
+                    var user = JsonSerializer.Deserialize<UserModel>(userJson);
+                    if (user is not null)
+                    {
+                        UserService.CurrentUser = user;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to deserialize user: {ex.Message}");
+                }
+            }
+
+            // Don’t start the chat until user is loaded
+            if (UserService.CurrentUser is not null)
+            {
+                ChatService.OnMessageReceived += (user, message) =>
+                {
+                    messages.Add(new ChatWindow.ChatMessage { User = user, Text = message });
+                    InvokeAsync(StateHasChanged);
+                };
+
+                await ChatService.StartAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user from sessionStorage: {ex.Message}");
+        }
     }
 
     private async Task HandleSendMessage(ChatWindow.ChatMessage data)
